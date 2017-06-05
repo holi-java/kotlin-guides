@@ -1,0 +1,42 @@
+group 'com.holi'
+version '1.0'
+
+buildscript {
+    ext.kotlin_version = '1.0.5'
+
+    repositories {
+        maven {
+            url = "http://maven.aliyun.com/nexus/content/groups/public"
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    maven {
+        url = "http://maven.aliyun.com/nexus/content/groups/public"
+    }
+    maven {
+        url 'http://dl.bintray.com/ngsw-taro/maven'
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.taroid.knit:knit:0.1.2'
+}
+
+wrapper {
+    gradleVersion = '3.3'
+}
+
+
