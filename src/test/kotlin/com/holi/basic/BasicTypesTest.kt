@@ -8,7 +8,6 @@ import java.util.*
 private typealias JavaBoolean = java.lang.Boolean;
 class BasicTypesTest {
 
-
     @Test
     fun int() {
         val number = 1;

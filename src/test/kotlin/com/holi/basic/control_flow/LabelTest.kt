@@ -1,11 +1,22 @@
 package com.holi.basic.control_flow
 
+import cancel
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.assertion.assert;
 import org.junit.Assert.fail
 import org.junit.Test
+import java.util.concurrent.CancellationException
 
 class LabelTest {
+    @Test(expected = CancellationException::class)
+    fun `function return without @label is always return the function`() {
+        val it = fun(): String {
+            return "foo"
+        };
+
+        assert.that(it(), equalTo("foo"));
+        cancel();
+    }
 
     @Test
     fun `break loop`() {
@@ -73,14 +84,14 @@ class LabelTest {
 
     @Test
     fun `return value from a lambda`() {
-        val actual = uninline {
-            return@uninline 1;
+        val actual = inline {
+            return@inline 1;
         };
 
         assert.that(actual, equalTo(1));
     }
 
-    inline fun inline(block: () -> Unit) {
+    inline fun <R> inline(block: () -> R): R {
         return block();
     }
 

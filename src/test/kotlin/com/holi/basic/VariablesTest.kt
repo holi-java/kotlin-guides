@@ -5,6 +5,7 @@ import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
 import org.junit.Test
 
+
 /**
  * Created by holi on 6/6/17.
  */
@@ -51,4 +52,19 @@ class VariablesTest {
         assert.that(it, equalTo("foo"));
     }
 
+    @Test
+    fun `constant can be declared at top level`() {
+        assert.that(global, equalTo(1));
+    }
+
+    object Value {
+        const val value = 3;
+    };
+    @Test
+    fun `constant can be declared in objects`() {
+        assert.that(Value.value, equalTo(3));
+    }
+
 }
+
+const val global: Int = 1;

@@ -1,4 +1,4 @@
-package com.holi.junit
+package com.holi.matchers
 
 import com.taroid.knit.should
 import org.junit.Assert.fail

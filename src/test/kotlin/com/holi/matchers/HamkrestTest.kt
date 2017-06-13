@@ -1,4 +1,4 @@
-package com.holi.junit
+package com.holi.matchers
 
 import com.natpryce.hamkrest.and
 import com.natpryce.hamkrest.assertion.assert

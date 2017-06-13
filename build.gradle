@@ -27,6 +27,7 @@ repositories {
     maven {
         url 'http://dl.bintray.com/ngsw-taro/maven'
     }
+    jcenter()
 }
 
 dependencies {
