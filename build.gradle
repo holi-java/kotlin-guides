@@ -44,4 +44,10 @@ wrapper {
     gradleVersion = '3.3'
 }
 
+compileKotlin {
+    kotlinOptions{
+        jvmTarget = "1.8"
+    }
+}
+
 
