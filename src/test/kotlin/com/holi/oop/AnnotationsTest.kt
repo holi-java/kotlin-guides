@@ -77,7 +77,7 @@ class AnnotationsTest {
     }
 
     @Repeatable
-    @Retention(SOURCE)
+    @Retention(SOURCE)//todo: exercise it with RUNTIME retention in the next kotlin version
     annotation class Parameter(val name: String);
 
     @Parameter("foo")
