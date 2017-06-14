@@ -1,5 +1,6 @@
 package com.holi.oop
 
+import com.natpryce.hamkrest.and
 import com.natpryce.hamkrest.anyElement
 import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
@@ -87,5 +88,12 @@ class AnnotationsTest {
     @Test
     fun `repeatable annotations can only using for kotlin source file`() {
         assert.that(this::repeat.annotations.size, equalTo(0));
+    }
+
+    @[Test Variable]
+    fun `annotated with multi annotations inline`() {
+        val it = this::`annotated with multi annotations inline`.annotations;
+
+        assert.that(it, anyElement(isA<Test>()) and anyElement(isA<Variable>()));
     }
 }
