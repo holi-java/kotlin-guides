@@ -1,10 +1,8 @@
 package com.holi.oop
 
-import com.natpryce.hamkrest.and
-import com.natpryce.hamkrest.anyElement
+import com.holi.oop.stubs.ArrayAttribute
+import com.natpryce.hamkrest.*
 import com.natpryce.hamkrest.assertion.assert
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.isA
 import org.junit.Test
 import kotlin.annotation.AnnotationRetention.SOURCE
 import kotlin.reflect.KClass
@@ -95,5 +93,24 @@ class AnnotationsTest {
         val it = this::`annotated with multi annotations inline`.annotations;
 
         assert.that(it, anyElement(isA<Test>()) and anyElement(isA<Variable>()));
+    }
+
+
+    @ArrayAttribute("foo", "bar")
+    fun fn() = 1;
+
+    @Test
+    fun `java annotation array attribute is treat as vararg`() {
+        assert.that(this::fn.findAnnotation<ArrayAttribute>()!!.value.toList(), equalTo(listOf("foo", "bar")));
+    }
+
+    annotation class Many(val first: String, val mid: String = "key", val last: String = "fuzz")
+
+    @Many("foo")
+    fun required() = 3;
+
+    @Test
+    fun `use the required parameter for the default parameter in kotlin, unlike java only the 'value' attribute does`() {
+        assert.that(this::required.findAnnotation<Many>()!!, has(Many::first, equalTo("foo")) and has(Many::last, equalTo("fuzz")));
     }
 }
