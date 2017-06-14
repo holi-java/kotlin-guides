@@ -45,17 +45,13 @@ wrapper {
     gradleVersion = '3.3'
 }
 
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
+tasks.findAll { it.name.endsWith("Kotlin") }.each {task->
+    task.with {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
     }
-}
-
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
+};
 
 kotlin {
     experimental {
