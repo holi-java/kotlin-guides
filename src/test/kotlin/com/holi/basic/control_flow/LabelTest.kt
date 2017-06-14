@@ -1,3 +1,5 @@
+@file: Suppress("WARNINGS")
+
 package com.holi.basic.control_flow
 
 import cancel

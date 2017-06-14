@@ -1,3 +1,4 @@
+@file: Suppress("WARNINGS")
 package com.holi.oop
 
 import com.holi.basic.next

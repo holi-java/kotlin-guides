@@ -1,3 +1,4 @@
+@file: Suppress("WARNINGS")
 package com.holi.features
 
 import com.natpryce.hamkrest.absent
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.coroutines.experimental.jvm.internal.CoroutineImpl
 import kotlin.jvm.functions.Function1
 
-
+@Suppress("EXPERIMENTAL")
 class CoroutinesTest {
 
     @Test(timeout = 100)

@@ -1,3 +1,4 @@
+@file: Suppress("WARNINGS")
 package com.holi.basic.operators
 
 import com.natpryce.hamkrest.assertion.assert

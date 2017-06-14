@@ -1,3 +1,4 @@
+@file: Suppress("WARNINGS")
 package com.holi.oop
 
 import com.natpryce.hamkrest.assertion.assert;
@@ -15,7 +16,7 @@ class NullPointerExceptionOccurrenceTest {
 
     @Test
     fun `use !! operator with null reference`() {
-        var ref = null;
+        val ref = null;
 
         assert.that({ ref!!::class }, throws(isA<NullPointerException>()));
     }

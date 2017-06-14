@@ -1,20 +1,27 @@
 package com.holi.oop
 
 import cancel
+import com.natpryce.hamkrest.and
 import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isA
 import com.natpryce.hamkrest.throws
-import junit.framework.Assert.fail
 import org.junit.Test
 import java.lang.Integer.parseInt
 import java.util.concurrent.CancellationException
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 /**
  * Created by holi on 6/6/17.
  */
 class FunctionTest {
+
+    @Test
+    fun `function is implemented to a class too`() {
+        fun foo() = 2;
+
+        assert.that(::foo, isA<Function0<*>>());
+    }
+
     @Test
     fun `single-expression function is able to infer its return type automatically`() {
         fun sum(a: Int, b: Int) = a + b;

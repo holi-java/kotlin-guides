@@ -1,3 +1,5 @@
+@file: Suppress("WARNINGS")
+
 package com.holi.basic
 
 import com.natpryce.hamkrest.*
@@ -86,6 +88,7 @@ class BasicTypesTest {
                    """;
         assert.that(text.replace(Regex("\\s+"), ""), equalTo("abcefg"));
     }
+
 
     @Test
     fun `escape char`() {

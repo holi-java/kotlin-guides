@@ -1,8 +1,10 @@
+@file: Suppress("WARNINGS")
+
 package com.holi.basic.control_flow
 
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.assertion.assert;
-import junit.framework.Assert.fail
+import org.junit.Assert.fail
 import org.junit.Test
 import java.lang.Integer.parseInt
 

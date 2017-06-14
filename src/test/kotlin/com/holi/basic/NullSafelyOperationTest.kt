@@ -1,3 +1,4 @@
+@file: Suppress("WARNINGS")
 package com.holi.basic
 
 import com.natpryce.hamkrest.*
