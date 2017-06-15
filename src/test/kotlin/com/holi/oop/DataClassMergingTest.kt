@@ -1,53 +1,45 @@
 package com.holi.oop
 
-import com.holi.oop.DataClassMergingTest.DTO
 import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
 import org.junit.Test
 import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 
 
 class DataClassMergingTest {
 
-    data class DTO(val prop1: String, val prop2: Int, val prop3: Int);
+    data class Bean(val name: String?, val age: Int?, val id: String?);
 
 
     @Test
     fun merge() {
-        val data = DTO("foo", 1, 2);
+        val data = Bean("foo", null, null);
 
-        val merged = merge(data, DTO("bar", 2, 3));
+        val merged = data merge Bean("bar", 2, "3");
 
-        assert.that(merged, equalTo(DTO("foo", 1, 2)));
+        assert.that(merged, equalTo(Bean("foo", 2, "3")));
     }
+
 }
 
+inline infix fun <reified T : Any> T.merge(mapping: KProperty1<T, *>.() -> Any?): T {
 
-/**
- *
- * @receiver T
- * @param KProperty1<T,*>.()-Any? mapping
- * @return T
- */
-infix fun <T : Any> T.merge(mapping: KProperty1<T, *>.() -> Any?): T {
-    @Suppress("UNCHECKED_CAST")
-    val merged = (this::class as KClass<T>).memberProperties.map { it.mapping() }.toTypedArray()
+    //data class always has primary constructor ---v
+    val constructor = T::class.primaryConstructor!!
+    //calculate the property order
+    val order = constructor.parameters.mapIndexed { index, it -> it.name to index }.associate { it };
 
-    return this::class.primaryConstructor!!.call(*merged);
+    // merge properties
+    val merged = T::class.declaredMemberProperties.sortedWith(compareBy { order[it.name] }).map { it.mapping() }.toTypedArray()
+
+
+    return constructor.call(*merged);
 }
 
-
-fun merge(left: DTO, right: DTO): DTO {
-    return left merge mapping@ {
-        //    v--- implement your own merge strategy
-        val it = this.get(left)
-        val that = this.get(right)
-        return@mapping when (it) {
-            null -> that
-            else -> it
-        }
-    };
+inline infix fun <reified T : Any> T.merge(right: T): T {
+    return this merge { get(this@merge) ?: get(right); };
 }
