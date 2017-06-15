@@ -28,16 +28,18 @@ class DataClassMergingTest {
 
 inline infix fun <reified T : Any> T.merge(mapping: KProperty1<T, *>.() -> Any?): T {
 
-    //data class always has primary constructor ---v
-    val constructor = T::class.primaryConstructor!!
-    //calculate the property order
-    val order = constructor.parameters.mapIndexed { index, it -> it.name to index }.associate { it };
+    val target = T::class;
+    //data class always has primary constructor
+    val cotr = target.primaryConstructor!!;
+
+
+    val parameters = cotr.parameters.associateBy { it.name };
 
     // merge properties
-    val merged = T::class.declaredMemberProperties.sortedWith(compareBy { order[it.name] }).map { it.mapping() }.toTypedArray()
+    val merged: Map<KParameter, Any?> = target.declaredMemberProperties.associate { parameters[it.name]!! to it.mapping() }
 
 
-    return constructor.call(*merged);
+    return cotr.callBy(merged);
 }
 
 inline infix fun <reified T : Any> T.merge(right: T): T {
