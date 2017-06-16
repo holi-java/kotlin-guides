@@ -145,9 +145,9 @@ fun <T> async(block: suspend () -> T): Request<T> {
     return object : Request<T> {
         @Volatile var value: T? = null;
         var exception: Throwable? = null;
-        var step: Continuation<Unit>? = block.createCoroutine(delegate(this::exceptionally, this::complete)).let {
+        var step: Continuation<Unit>? = block.createCoroutine(delegate(this::exceptionally, this::complete)).let proxy@ {
             var task: Future<*>? = executor.submit { it.resume(Unit); };
-            return@let delegate {
+            return@proxy delegate(this::exceptionally) {
                 try {
                     val current = task!!;
                     task = null;
@@ -166,11 +166,11 @@ fun <T> async(block: suspend () -> T): Request<T> {
             this.exception = exception;
         }
 
-        override fun <R> then(mapping: (T) -> R): Request<R> = done(mapping = mapping);
+        override fun <R> then(mapping: (T) -> R): Request<R> = done(exceptional = { throw it; }, mapping = mapping);
 
         override fun catch(exceptional: (Throwable) -> Unit): Request<T> = done(exceptional) { it };
 
-        private inline fun <R> done(noinline exceptional: (Throwable) -> Unit = { throw it; }, crossinline mapping: (T) -> R): Request<R> {
+        private inline fun <R> done(crossinline exceptional: (Throwable) -> Unit, crossinline mapping: (T) -> R): Request<R> {
             return async result@ {
                 try {
                     return@result mapping(get())
@@ -198,7 +198,7 @@ fun <T> async(block: suspend () -> T): Request<T> {
     };
 }
 
-inline fun <T> delegate(noinline exceptional: (Throwable) -> Unit = { throw it; }, crossinline complete: (T) -> Unit): Continuation<T> {
+inline fun <T> delegate(crossinline exceptional: (Throwable) -> Unit, crossinline complete: (T) -> Unit): Continuation<T> {
     return object : Continuation<T> {
         override val context: CoroutineContext = EmptyCoroutineContext;
 
