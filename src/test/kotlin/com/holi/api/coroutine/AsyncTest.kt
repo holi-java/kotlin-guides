@@ -181,18 +181,12 @@ fun <T> async(block: suspend () -> T): Request<T> {
             }
         }
 
-        override fun get(): T {
-            if (exception != null) {
-                throw exception!!
-            }
-            return value ?: await();
+        override fun get(): T = when (exception) {
+            null -> value ?: await();
+            else -> throw exception!!;
         }
 
         private fun await(): T {
-            if (exception != null) {
-                throw exception!!;
-            }
-
             val it = step!!;
             step = null;
             it.resume(Unit);
