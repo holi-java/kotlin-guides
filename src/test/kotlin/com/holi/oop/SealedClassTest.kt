@@ -2,27 +2,31 @@
 
 package com.holi.oop
 
-import com.natpryce.hamkrest.assertion.assert;
+import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.has
 import org.junit.Test
 
 
 class SealedClassTest {
     @Test
     fun `sealed class like as an enum class but its subclass have diff states and behaviors`() {
-        val constant: Expression = Constant;
-        val variable: Expression = Variable();
+        assert.that(Constant.map { value }, equalTo(1));
+        assert.that(Variable("foo").map { name }, equalTo("foo"));
+    }
 
-        assert.that(Constant.value, equalTo(1));
-        assert.that(Variable().name, equalTo("foo"));
+    object DynamicVariable : Variable("bar");
+
+    @Test
+    fun `subclass of sealed class can be extended`() {
+        assert.that(DynamicVariable.map { name }, equalTo("bar"));
     }
 }
 
 sealed class Expression;
+
+fun <T : Expression, R> T.map(block: T.() -> R?): R? = this.block();
+
 object Constant : Expression() {
     val value = 1;
 };
-class Variable : Expression() {
-    val name = "foo";
-}
+open class Variable(val name: String) : Expression();
