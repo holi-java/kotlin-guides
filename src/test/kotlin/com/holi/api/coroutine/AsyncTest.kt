@@ -17,18 +17,14 @@ class AsyncTest {
 
     @Test
     fun get() {
-        val it = async {
-            yield("foo");
-        };
+        val it = async { "foo" };
 
         assert.that(it.get(), equalTo("foo"));
     }
 
     @Test
     fun `result is cached`() {
-        val it = async {
-            yield("foo");
-        };
+        val it = async { "foo" };
 
         assert.that(it.get(), equalTo("foo"));
         assert.that(it.get(), equalTo("foo"));
@@ -37,7 +33,7 @@ class AsyncTest {
     @Test
     fun `execute block asynchronous`() {
         val it = async {
-            yield(Thread.currentThread());
+            Thread.currentThread();
         };
 
         assert.that(it.get(), !equalTo(Thread.currentThread()));
@@ -47,7 +43,6 @@ class AsyncTest {
     fun `async don't blocking the main thread`() {
         async {
             Thread.sleep(2000);
-            yield(Thread.currentThread());
         };
     }
 
@@ -67,7 +62,7 @@ class AsyncTest {
     fun `then`() {
         val array = ArrayBlockingQueue<String>(1);
 
-        async { yield("foo") }.then(array::put);
+        async { "foo" }.then(array::put);
 
         assert.that(array.take(), equalTo("foo"))
     }
@@ -76,14 +71,14 @@ class AsyncTest {
     fun `then clause is applied in another thread`() {
         val array = ArrayBlockingQueue<Thread>(1);
 
-        async { yield("foo") }.then({ array.add(Thread.currentThread()) });
+        async { "foo" }.then({ array.add(Thread.currentThread()) });
 
         assert.that(array.take(), !equalTo(Thread.currentThread()));
     }
 
     @Test
     fun `chain`() {
-        val it = async { yield("foo") }.then(String::toUpperCase).then({ it.substring(1) });
+        val it = async { "foo" }.then(String::toUpperCase).then({ it.substring(1) });
 
         assert.that(it.get(), equalTo("OO"));
     }
@@ -101,9 +96,6 @@ class AsyncTest {
 
 }
 
-interface Response<in T> {
-    suspend fun yield(value: T);
-}
 
 interface Request<out T> {
     fun get(): T;
@@ -112,11 +104,11 @@ interface Request<out T> {
 }
 
 private val executor: ExecutorService = ForkJoinPool(20);
-fun <T> async(block: suspend Response<T>.() -> Unit): Request<T> {
-    return object : Request<T>, Response<T> {
+fun <T> async(block: suspend () -> T): Request<T> {
+    return object : Request<T> {
         @Volatile var value: T? = null;
 
-        var request: Continuation<Unit>? = block.createCoroutine(this, delegate {}).let {
+        var request: Continuation<Unit>? = block.createCoroutine(delegate(resume =this::complete)).let {
             var task: Future<*>? = executor.submit { it.resume(Unit); };
             return@let delegate {
                 try {
@@ -129,8 +121,12 @@ fun <T> async(block: suspend Response<T>.() -> Unit): Request<T> {
             };
         };
 
+        private fun complete(value: T) {
+            this.value = value
+        }
+
         override fun <R> then(mapping: (T) -> R): Request<R> = async<R> {
-            yield(mapping(get()));
+            mapping(get());
         };
 
         override fun catch(exceptional: (Throwable) -> Unit): Unit {
@@ -153,9 +149,6 @@ fun <T> async(block: suspend Response<T>.() -> Unit): Request<T> {
             return value!!;
         }
 
-        suspend override fun yield(value: T) {
-            this.value = value;
-        }
 
     };
 }
