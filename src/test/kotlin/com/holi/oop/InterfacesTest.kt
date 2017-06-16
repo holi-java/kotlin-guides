@@ -2,6 +2,7 @@ package com.holi.oop
 
 import com.natpryce.hamkrest.*
 import com.natpryce.hamkrest.assertion.assert
+import com.natpryce.hamkrest.assertion.assertThat
 import org.junit.Test
 import java.lang.reflect.Member
 import kotlin.reflect.KClass
@@ -59,5 +60,18 @@ class InterfacesTest {
         val it = Subclass();
 
         assert.that(it.value, equalTo(4));
+    }
+
+    interface Privacy {
+        val foo get() = bar();
+
+        private fun bar() = "bar";
+    }
+
+    @Test
+    fun `interface can have private methods`() {
+        val it = object : Privacy {/**/ };
+
+        assertThat(it.foo, equalTo("bar"));
     }
 }
