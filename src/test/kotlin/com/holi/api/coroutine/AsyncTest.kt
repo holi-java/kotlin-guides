@@ -6,6 +6,7 @@ import com.natpryce.hamkrest.isA
 import com.natpryce.hamkrest.sameInstance
 import com.natpryce.hamkrest.throws
 import org.junit.Test
+import java.io.IOException
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.CoroutineContext
@@ -85,7 +86,7 @@ class AsyncTest {
     }
 
     @Test
-    fun `chain`() {
+    fun `then chain`() {
         val it = async { "foo" }.then(String::toUpperCase).then({ it.substring(1) });
 
         assert.that(it.get(), equalTo("OO"));
@@ -102,13 +103,41 @@ class AsyncTest {
     }
 
 
+    @Test
+    fun `catch chain`() {
+        val exceptions = ArrayBlockingQueue<Throwable>(1);
+
+        async<Any> { throw IOException(); }.catch({ throw IllegalStateException(); }).catch(exceptions::put);
+
+        assert.that(exceptions.take(), isA<IllegalStateException>());
+    }
+
+    @Test
+    fun `combine result`() {
+        val it = async { "foo" };
+
+        assert.that(it.then { it.toUpperCase() }.catch { throw IllegalStateException() }.get(), equalTo("FOO"));
+        assert.that(it.catch { throw IllegalStateException() }.then { it.toUpperCase() }.get(), equalTo("FOO"));
+    }
+
+    @Test
+    fun `combine exception`() {
+        val reason = IOException();
+        val forward = IllegalStateException();
+        val it = async<String> { throw reason };
+
+        assert.that({ it.then { it.toUpperCase() }.catch { throw forward; }.get() }, throws(sameInstance(forward)));
+        assert.that({ it.catch { throw forward; }.then { it.toUpperCase() }.get() }, throws(sameInstance(forward)));
+    }
+
+
 }
 
 
 interface Request<out T> {
     fun get(): T;
     fun <R> then(mapping: (T) -> R): Request<R>;
-    fun catch(exceptional: (Throwable) -> Unit)
+    fun catch(exceptional: (Throwable) -> Unit): Request<T>
 }
 
 private val executor: ExecutorService = ForkJoinPool(20);
@@ -116,7 +145,7 @@ fun <T> async(block: suspend () -> T): Request<T> {
     return object : Request<T> {
         @Volatile var value: T? = null;
         var exception: Throwable? = null;
-        var request: Continuation<Unit>? = block.createCoroutine(delegate(this::exceptionally, this::complete)).let {
+        var step: Continuation<Unit>? = block.createCoroutine(delegate(this::exceptionally, this::complete)).let {
             var task: Future<*>? = executor.submit { it.resume(Unit); };
             return@let delegate {
                 try {
@@ -137,18 +166,20 @@ fun <T> async(block: suspend () -> T): Request<T> {
             this.exception = exception;
         }
 
-        override fun <R> then(mapping: (T) -> R): Request<R> = async<R> {
-            mapping(get());
-        };
+        override fun <R> then(mapping: (T) -> R): Request<R> = done(mapping = mapping);
 
-        override fun catch(exceptional: (Throwable) -> Unit): Unit {
-            try {
-                get();
-            } catch(e: Throwable) {
-                exceptional(e);
+        override fun catch(exceptional: (Throwable) -> Unit): Request<T> = done(exceptional) { it };
+
+        private inline fun <R> done(noinline exceptional: (Throwable) -> Unit = { throw it; }, crossinline mapping: (T) -> R): Request<R> {
+            return async result@ {
+                try {
+                    return@result mapping(get())
+                } catch(e: Throwable) {
+                    exceptional(e);
+                    return@result null as R;
+                }
             }
         }
-
 
         override fun get(): T {
             if (exception != null) {
@@ -162,8 +193,8 @@ fun <T> async(block: suspend () -> T): Request<T> {
                 throw exception!!;
             }
 
-            val it = request!!;
-            request = null;
+            val it = step!!;
+            step = null;
             it.resume(Unit);
 
             return get();
