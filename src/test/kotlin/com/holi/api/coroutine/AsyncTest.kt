@@ -131,20 +131,24 @@ class AsyncTest {
     }
 
 
+    @Test
+    fun `catch and return the default value`() {
+        assert.that(async<String> { throw Exception() }.catch { "foo" }.get(), equalTo("foo"));
+    }
 }
 
 
-interface Request<out T> {
+interface Request<T> {
     fun get(): T;
     fun <R> then(mapping: (T) -> R): Request<R>;
-    fun catch(exceptional: (Throwable) -> Unit): Request<T>
+    fun catch(exceptional: (Throwable) -> T): Request<T>
 }
 
 private val executor: ExecutorService = ForkJoinPool(20);
 fun <T> async(block: suspend () -> T): Request<T> {
     return object : Request<T> {
         @Volatile var value: T? = null;
-        var exception: Throwable? = null;
+        @Volatile var exception: Throwable? = null;
         var step: Continuation<Unit>? = block.createCoroutine(delegate(this::exceptionally, this::complete)).let proxy@ {
             var task: Future<*>? = executor.submit { it.resume(Unit); };
             return@proxy delegate(this::exceptionally) {
@@ -166,17 +170,16 @@ fun <T> async(block: suspend () -> T): Request<T> {
             this.exception = exception;
         }
 
-        override fun <R> then(mapping: (T) -> R): Request<R> = done(exceptional = { throw it; }, mapping = mapping);
+        override fun <R> then(mapping: (T) -> R): Request<R> = whenComplete(exceptional = { throw it; }, mapping = mapping);
 
-        override fun catch(exceptional: (Throwable) -> Unit): Request<T> = done(exceptional) { it };
+        override fun catch(exceptional: (Throwable) -> T): Request<T> = whenComplete(exceptional) { it };
 
-        private inline fun <R> done(crossinline exceptional: (Throwable) -> Unit, crossinline mapping: (T) -> R): Request<R> {
+        private inline fun <R> whenComplete(crossinline exceptional: (Throwable) -> R, crossinline mapping: (T) -> R): Request<R> {
             return async result@ {
                 try {
-                    return@result mapping(get())
+                    return@result mapping(get());
                 } catch(e: Throwable) {
-                    exceptional(e);
-                    return@result null as R;
+                    return@result exceptional(e);
                 }
             }
         }
