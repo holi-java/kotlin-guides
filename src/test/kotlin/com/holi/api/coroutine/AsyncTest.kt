@@ -5,7 +5,6 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isA
 import com.natpryce.hamkrest.sameInstance
 import com.natpryce.hamkrest.throws
-import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.Continuation
@@ -47,13 +46,22 @@ class AsyncTest {
     }
 
     @Test
-    @Ignore
     fun `async can capture exception from the block`() {
         val expected = IllegalStateException();
         val it = async<Any> {
             throw expected;
         };
 
+        assert.that({ it.get() }, throws(sameInstance(expected)));
+    }
+
+    @Test
+    fun `restore the exception`() {
+        val expected = IllegalStateException();
+
+        val it = async<Any> { throw expected; };
+
+        assert.that({ it.get() }, throws(sameInstance(expected)));
         assert.that({ it.get() }, throws(sameInstance(expected)));
     }
 
@@ -107,8 +115,8 @@ private val executor: ExecutorService = ForkJoinPool(20);
 fun <T> async(block: suspend () -> T): Request<T> {
     return object : Request<T> {
         @Volatile var value: T? = null;
-
-        var request: Continuation<Unit>? = block.createCoroutine(delegate(resume =this::complete)).let {
+        var exception: Throwable? = null;
+        var request: Continuation<Unit>? = block.createCoroutine(delegate(this::exceptionally, this::complete)).let {
             var task: Future<*>? = executor.submit { it.resume(Unit); };
             return@let delegate {
                 try {
@@ -125,6 +133,10 @@ fun <T> async(block: suspend () -> T): Request<T> {
             this.value = value
         }
 
+        private fun exceptionally(exception: Throwable) {
+            this.exception = exception;
+        }
+
         override fun <R> then(mapping: (T) -> R): Request<R> = async<R> {
             mapping(get());
         };
@@ -139,21 +151,29 @@ fun <T> async(block: suspend () -> T): Request<T> {
 
 
         override fun get(): T {
-            return value ?: wait();
+            if (exception != null) {
+                throw exception!!
+            }
+            return value ?: await();
         }
 
-        private fun wait(): T {
+        private fun await(): T {
+            if (exception != null) {
+                throw exception!!;
+            }
+
             val it = request!!;
             request = null;
             it.resume(Unit);
-            return value!!;
+
+            return get();
         }
 
 
     };
 }
 
-inline fun <T> delegate(noinline exceptional: (Throwable) -> Unit = { throw it; }, crossinline resume: (T) -> Unit): Continuation<T> {
+inline fun <T> delegate(noinline exceptional: (Throwable) -> Unit = { throw it; }, crossinline complete: (T) -> Unit): Continuation<T> {
     return object : Continuation<T> {
         override val context: CoroutineContext = EmptyCoroutineContext;
 
@@ -163,7 +183,7 @@ inline fun <T> delegate(noinline exceptional: (Throwable) -> Unit = { throw it; 
         }
 
         override fun resume(value: T) {
-            resume(value);
+            complete(value);
         }
     }
 }
