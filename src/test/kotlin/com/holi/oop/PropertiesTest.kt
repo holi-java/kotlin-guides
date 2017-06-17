@@ -57,8 +57,7 @@ class PropertiesTest {
         assert.that(it.value, equalTo("foo"));
     }
 
-    var value = 1
-        private set;
+    var value = 1; private set;
 
     @Test
     fun `makes setter private`() {
