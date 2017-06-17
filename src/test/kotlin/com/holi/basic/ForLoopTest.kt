@@ -2,6 +2,8 @@ package com.holi.basic
 
 import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.equalTo
+import com.natpryce.hamkrest.isA
+import com.natpryce.hamkrest.throws
 import org.junit.Test
 import java.util.*
 
@@ -30,5 +32,17 @@ class ForLoopTest {
         }
 
         assert.that(result, equalTo(arrayListOf(1, 2, 3)));
+    }
+
+    @Test
+    fun `supports fail fast feature`() {
+        val list = arrayListOf(1, 2);
+        val snippets = {
+            for (item in list) {
+                list += item * 3;
+            }
+        };
+
+        assert.that(snippets, throws(isA<ConcurrentModificationException>()));
     }
 }
