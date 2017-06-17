@@ -3,11 +3,17 @@ package com.holi.oop
 import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
+import com.natpryce.hamkrest.has
 import com.natpryce.hamkrest.isA
 import com.natpryce.hamkrest.throws
 import org.junit.Test
 import java.lang.reflect.Modifier.FINAL
 import java.lang.reflect.Modifier.PRIVATE
+import kotlin.reflect.KCallable
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty.*
+import kotlin.reflect.KProperty0
+import kotlin.reflect.KVisibility
 import kotlin.reflect.jvm.javaField
 
 class PropertiesTest {
@@ -51,6 +57,16 @@ class PropertiesTest {
         assert.that(it.value, equalTo("foo"));
     }
 
+    var value = 1
+        private set;
+
+    @Test
+    fun `makes setter private`() {
+        val it = this::value;
+
+        assert.that(it.getter, has(KCallable<*>::visibility, equalTo(KVisibility.PUBLIC)));
+        assert.that(it.setter, has(KCallable<*>::visibility, equalTo(KVisibility.PRIVATE)));
+    }
 
     @Test
     fun `backing field by using implicit field variable`() {
