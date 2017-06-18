@@ -1,7 +1,7 @@
-@file:Annotation
+@file:com.holi.oop.stubs.Annotation
 @file: Suppress("warnings")
 
-package com.holi.oop
+package com.holi.annotations
 
 import com.holi.oop.stubs.Annotation
 import com.natpryce.hamkrest.anyElement
@@ -75,8 +75,8 @@ class AnnotationUseSiteTargetTest {
 
     @Test
     fun `@param site-target`() {
-        assert.that(::ConstructorParamSiteTarget.parameters[0].annotations, isAnnotated);
-        assert.that(::ConstructorParamSiteTarget.javaConstructor!!.parameters[0].annotations.toList(), isAnnotated);
+        assert.that(AnnotationUseSiteTargetTest::ConstructorParamSiteTarget.parameters[0].annotations, isAnnotated);
+        assert.that(AnnotationUseSiteTargetTest::ConstructorParamSiteTarget.javaConstructor!!.parameters[0].annotations.toList(), isAnnotated);
         assert.that(ConstructorParamSiteTarget::value.run { annotations + getter.annotations }.toList(), !isAnnotated)
     }
 
@@ -116,7 +116,7 @@ class AnnotationUseSiteTargetTest {
         assert.that(it.annotations.toList(), isAnnotated);
     }
 
-    val isAnnotated get() = anyElement(isA<Annotation>());
+    val isAnnotated get() = anyElement(com.natpryce.hamkrest.isA<Annotation>());
 }
 
 
