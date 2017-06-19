@@ -1,6 +1,7 @@
 package com.holi.oop
 
 import com.natpryce.hamkrest.assertion.assert
+import com.natpryce.hamkrest.assertion.that
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isA
 import com.natpryce.hamkrest.throws
@@ -24,7 +25,6 @@ class DelegationTest {
 
     @Test
     fun `delegate methods which is not overridden`() {
-        lazy { }
         class ActionProxy(target: Action) : Action by target {
             override val bar = "baz";
         }
@@ -35,6 +35,13 @@ class DelegationTest {
         assert.that(it.bar, equalTo("baz"));
     }
 
+    @Test
+    fun `anonymous object delegate to variables`() {
+        val it = object : Action by default {/**/ };
+
+        assert.that(it.foo, equalTo("foo"));
+        assert.that({ it.bar }, throws(isA<IllegalStateException>()));
+    }
 
     @Test
     fun `delegate properties to Map`() {
