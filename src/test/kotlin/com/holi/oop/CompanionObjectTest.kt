@@ -5,6 +5,10 @@ import com.natpryce.hamkrest.assertion.assert;
 import com.natpryce.hamkrest.hasElement
 import com.natpryce.hamkrest.isA
 import org.junit.Test
+import kotlin.reflect.KClass
+import com.holi.oop.CompanionObjectTest.Literal.Token as LiteralToken;
+
+typealias VariableToken = CompanionObjectTest.Variable.Token;
 
 
 class CompanionObjectTest {
@@ -26,6 +30,30 @@ class CompanionObjectTest {
         assert.that(Literal, isA<Token<*>>(equalTo(Literal.Token)));
     }
 
+    @Test
+    fun `can't refer companion object class by `() {
+        assert.that(Literal.Token, !isA<KClass<*>>());
+        assert.that(Literal.Token, isA<Literal.Token>());
+    }
+
+
+    @Test
+    fun `can't refer companion object class by import statement`() {
+        assert.that(LiteralToken, !isA<KClass<*>>());
+        assert.that(LiteralToken, isA<Literal.Token>());
+    }
+
+
+    @Test
+    fun `can't refer companion object class by typealias keyword`() {
+        assert.that(VariableToken, !isA<KClass<*>>());
+        assert.that(VariableToken, isA<VariableToken>());
+    }
+
+    @Test
+    fun `refer companion object class by class`() {
+        assert.that(VariableToken::class, isA<KClass<Token<*>>>());
+    }
 
     class AnnotatedJvmStatic {
         companion object {
