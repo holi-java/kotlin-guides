@@ -16,6 +16,7 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'groovy'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -44,7 +45,7 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-
+    compile localGroovy()
     testCompile "org.springframework:spring-test:5.0.0.M5"
     testCompile "org.springframework:spring-context:5.0.0.M5"
     testCompile "org.springframework:spring-aop:5.0.0.M5"
