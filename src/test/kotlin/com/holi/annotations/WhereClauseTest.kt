@@ -10,7 +10,7 @@ import kotlin.reflect.full.starProjectedType
 
 
 class WhereClauseTest {
-    fun <T> accept(value: T) where T : Serializable, T : Closeable = Unit;
+    fun <T> accept(@Suppress("UNUSED_PARAMETER") value: T) where T : Serializable, T : Closeable = Unit;
 
     @Test
     fun types() {

@@ -27,6 +27,7 @@ fun <T> produce(context: CoroutineContext = EmptyCoroutineContext, building: sus
 
         private fun take(): T {
             state = NOT_READY;
+            @Suppress("UNCHECKED_CAST")
             val it = value as T;
             value = null;
             return it;

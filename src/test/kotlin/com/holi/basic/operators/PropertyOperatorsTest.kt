@@ -39,7 +39,7 @@ class PropertyOperatorsTest {
         operator fun <T> provideDelegate(target: T, property: KProperty<*>): ReadOnlyProperty<T, Int> {
             return object : ReadOnlyProperty<T, Int> {
                 val identity by lazy { value shl bits };
-                override fun getValue(thisRef: T, property: KProperty<*>): Int {
+                override fun getValue(thisRef: T, @Suppress("NAME_SHADOWING") property: KProperty<*>): Int {
                     return identity;
                 }
             }
