@@ -5,16 +5,18 @@ import com.natpryce.hamkrest.equalTo
 import org.junit.Test
 
 class EqualityOperatorsTest {
-    val it: Int = 1;
+    val it: Int? = 1;
 
     @Test
-    fun equal() {
-        assert.that(it == 1, equalTo(it.equals(1)));
+    fun `structural equality`() {
+        assert(it == 1)
+        assert(it != 2)
     }
 
     @Test
-    fun `not equal`() {
-        assert.that(it != 2, equalTo(!it.equals(2)));
+    fun `reference equality`() {
+        assert(it === it)
+        assert(it !== Integer(it.toString()) as Int?)
     }
 
 }
