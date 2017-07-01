@@ -59,6 +59,9 @@ wrapper {
     gradleVersion = '3.3'
 }
 
+compileTestGroovy.dependsOn(compileTestKotlin)
+compileTestGroovy.classpath += files(compileTestKotlin.destinationDir)
+
 tasks.findAll { it.name.endsWith("Kotlin") }.each { task ->
     task.with {
         kotlinOptions {

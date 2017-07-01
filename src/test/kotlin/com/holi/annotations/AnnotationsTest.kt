@@ -1,5 +1,7 @@
 package com.holi.annotations
 
+import com.holi.oop.stubs.ArrayAttribute
+import com.natpryce.hamkrest.assertion.assert
 import com.natpryce.hamkrest.*
 import org.junit.Test
 import kotlin.reflect.KClass
@@ -10,95 +12,95 @@ class AnnotationsTest {
     @Retention
     annotation class Fancy;
 
-    @com.holi.annotations.AnnotationsTest.Fancy
+    @Fancy
     fun foo() = null;
 
-    @org.junit.Test
+    @Test
     fun `annotation default retention is runtime`() {
-        com.natpryce.hamkrest.assertion.assert.that(this::foo.annotations, com.natpryce.hamkrest.anyElement(com.natpryce.hamkrest.isA<Fancy>()));
+        assert.that(this::foo.annotations, anyElement(isA<Fancy>()));
     }
 
-    class Constructor @com.holi.annotations.AnnotationsTest.Fancy constructor() {/**/ }
+    class Constructor @Fancy constructor() {/**/ }
 
-    @org.junit.Test
+    @Test
     fun `annotated on constructor`() {
-        com.natpryce.hamkrest.assertion.assert.that(com.holi.annotations.AnnotationsTest::Constructor.annotations, com.natpryce.hamkrest.anyElement(com.natpryce.hamkrest.isA<Fancy>()));
+        assert.that(AnnotationsTest::Constructor.annotations, anyElement(isA<Fancy>()));
     }
 
-    @org.junit.Test
+    @Test
     fun `annotated on property accessor`() {
         class PropertyAccess {
             var value = 1
-                @com.holi.annotations.AnnotationsTest.Fancy set (value) {
+                @Fancy set (value) {
                     field = value;
                 };
         }
 
-        com.natpryce.hamkrest.assertion.assert.that(PropertyAccess::value.setter.annotations, com.natpryce.hamkrest.anyElement(com.natpryce.hamkrest.isA<Fancy>()));
+        assert.that(PropertyAccess::value.setter.annotations, anyElement(isA<Fancy>()));
     }
 
 
     annotation class Variable(val type: kotlin.reflect.KClass<*> = Any::class);
 
-    @com.holi.annotations.AnnotationsTest.Variable
+    @Variable
     fun default() = 1;
 
-    @com.holi.annotations.AnnotationsTest.Variable(Int::class)
+    @Variable(Int::class)
     fun special() = 1;
 
 
-    @org.junit.Test
+    @Test
     fun `annotation with constructors for java 'Class' parameters by kotlin 'KClass'`() {
-        com.natpryce.hamkrest.assertion.assert.that(this::default.findAnnotation<com.holi.annotations.AnnotationsTest.Variable>()!!.type, com.natpryce.hamkrest.equalTo<KClass<*>>(Any::class));
-        com.natpryce.hamkrest.assertion.assert.that(this::special.findAnnotation<com.holi.annotations.AnnotationsTest.Variable>()!!.type, com.natpryce.hamkrest.equalTo<KClass<*>>(Int::class));
+        assert.that(this::default.findAnnotation<Variable>()!!.type, equalTo<KClass<*>>(Any::class));
+        assert.that(this::special.findAnnotation<Variable>()!!.type, equalTo<KClass<*>>(Int::class));
     }
 
 
-    annotation class Variables(val values: Array<com.holi.annotations.AnnotationsTest.Variable>);
+    annotation class Variables(val values: Array<Variable>);
 
-    @com.holi.annotations.AnnotationsTest.Variables(values = arrayOf(com.holi.annotations.AnnotationsTest.Variable(), com.holi.annotations.AnnotationsTest.Variable(String::class)))
+    @Variables(values = arrayOf(Variable(), Variable(String::class)))
     fun variables() = 2;
 
-    @org.junit.Test
+    @Test
     fun `an annotation is used as a parameter of another annotation, its name is not prefixed with the @ character`() {
-        val it = this::variables.findAnnotation<com.holi.annotations.AnnotationsTest.Variables>()!!;
+        val it = this::variables.findAnnotation<Variables>()!!;
 
-        com.natpryce.hamkrest.assertion.assert.that(it.values.map { it.type }, com.natpryce.hamkrest.equalTo(listOf(Any::class, String::class)));
+        assert.that(it.values.map { it.type }, equalTo(listOf(Any::class, String::class)));
     }
 
 
-    @org.junit.Test
+    @Test
     fun `any type annotated with kotlin Metadata`() {
-        com.natpryce.hamkrest.assertion.assert.that(javaClass.annotations.map { it::class.superclasses.map { it.qualifiedName!! } }.flatten(), com.natpryce.hamkrest.anyElement(com.natpryce.hamkrest.equalTo("kotlin.Metadata")));
+        assert.that(javaClass.annotations.map { it::class.superclasses.map { it.qualifiedName!! } }.flatten(), anyElement(equalTo("kotlin.Metadata")));
     }
 
     @Repeatable
     @Retention(kotlin.annotation.AnnotationRetention.SOURCE)//todo: exercise it with RUNTIME retention in the next kotlin version
     annotation class Parameter(val name: String);
 
-    @com.holi.annotations.AnnotationsTest.Parameter("foo")
-    @com.holi.annotations.AnnotationsTest.Parameter("bar")
+    @Parameter("foo")
+    @Parameter("bar")
     fun repeat() = 3;
 
-    @org.junit.Test
+    @Test
     fun `repeatable annotations can only using for kotlin source file`() {
-        com.natpryce.hamkrest.assertion.assert.that(this::repeat.annotations.size, com.natpryce.hamkrest.equalTo(0));
+        assert.that(this::repeat.annotations.size, equalTo(0));
     }
 
-    @[org.junit.Test com.holi.annotations.AnnotationsTest.Variable]
+    @[Test Variable]
     fun `annotated with multi annotations inline`() {
         val it = this::`annotated with multi annotations inline`.annotations;
 
-        com.natpryce.hamkrest.assertion.assert.that(it, com.natpryce.hamkrest.anyElement(com.natpryce.hamkrest.isA<Test>()) and com.natpryce.hamkrest.anyElement(com.natpryce.hamkrest.isA<Variable>()));
+        assert.that(it, anyElement(isA<Test>()) and anyElement(isA<Variable>()));
     }
 
 
-    @com.holi.oop.stubs.ArrayAttribute("foo", "bar")
+    @ArrayAttribute("foo", "bar")
     fun fn() = 1;
 
-    @org.junit.Test
+    @Test
     fun `java annotation array attribute is treat as vararg`() {
-        com.natpryce.hamkrest.assertion.assert.that(this::fn.findAnnotation<com.holi.oop.stubs.ArrayAttribute>()!!.value.toList(), com.natpryce.hamkrest.equalTo(listOf("foo", "bar")));
+        assert.that(this::fn.findAnnotation<ArrayAttribute>()!!.value.toList(), equalTo(listOf("foo", "bar")));
     }
 
     annotation class Many(val first: String, val mid: String = "key", val last: String = "fuzz")
@@ -106,8 +108,8 @@ class AnnotationsTest {
     @com.holi.annotations.AnnotationsTest.Many("foo")
     fun required() = 3;
 
-    @org.junit.Test
+    @Test
     fun `use the required parameter for the default parameter in kotlin, unlike java only the 'value' attribute does`() {
-        com.natpryce.hamkrest.assertion.assert.that(this::required.findAnnotation<com.holi.annotations.AnnotationsTest.Many>()!!, com.natpryce.hamkrest.has(Many::first, equalTo("foo")) and com.natpryce.hamkrest.has(Many::last, equalTo("fuzz")));
+        assert.that(this::required.findAnnotation()!!, has(Many::first, equalTo("foo")) and has(Many::last, equalTo("fuzz")));
     }
 }
